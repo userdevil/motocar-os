@@ -17,8 +17,8 @@
     *   **Dynamic Decoder Pacing**: When orientation changes, the native C++ engine automatically reconfigures hardware `MediaCodec` without dropping the projection session.
 *   **Phone GPS Relay**:
     *   Streams high-accuracy GPS coordinates from the pocket phone or local GNSS receiver over AAP Channel 6.
-*   **Wi-Fi 5GHz Wireless Link**:
-    *   High-throughput 802.11ac/ax Wi-Fi Direct / Local Hotspot link operating on TCP port 5277 for wireless Android Auto projection.
+*   **Wi-Fi Dual-Band 2.4GHz & 5GHz Wireless Link**:
+    *   Dual-band 802.11b/g/n (2.4GHz Channels 1-11) and 802.11ac/ax (5GHz) Wi-Fi Direct / Local Hotspot link operating on TCP port 5277 for universal wireless phone mirroring across all phone hardware.
 *   **Bluetooth Audio & Helmet Intercom**:
     *   Bluetooth 5.x audio stack operating in **A2DP Sink Mode**, bridging navigation voice cues and music from the pocket phone directly to paired motorcycle helmet headsets (Sena, Cardo, AirPods) or car speakers.
 *   **USB AOA 2.0 Wired Connectivity**:

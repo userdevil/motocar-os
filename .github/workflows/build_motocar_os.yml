@@ -34,23 +34,27 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            MotoCarOS-Universal-ARM64-v1.0-system.img.xz
-            MotoCarOS-Universal-ARM64-v1.0-Fastboot.zip
+            MotoCarOS-Universal-ARM64-*-system.img.xz
+            MotoCarOS-Universal-ARM64-*-Fastboot.zip
           draft: false
           prerelease: false
-          name: "MotoCar OS Universal ARM64 Release"
+          name: "MotoCar OS Universal Head Unit Release"
           body: |
-            ### MotoCar OS v1.0 - Universal Automotive ROM for All Android Phones
+            ### MotoCar OS - Pure Dedicated In-Vehicle Head Unit OS (Bike & Car)
             
-            This is the official compiled operating system image for converting any ARM64 Android phone into a dedicated Motorcycle/Car Head Unit.
+            This is the official, universal operating system image converting any ARM64 Android phone into a dedicated motorcycle/car headunit.
             
-            #### Features:
-            - **Universal Compatibility**: Boots on all Project Treble ARM64 Android phones.
-            - **Motorcycle & Car Dual Orientation**: Landscape (16:9) and Portrait (9:16) with banking angle lock.
-            - **Phone Screen Mirroring & App Streaming**: Low latency H.264 video decoding.
-            - **High-gain GPS Navigation Relay**: Streaming Google Maps / Waze directly from the driver's phone.
-            - **Connectivity**: 5GHz Wi-Fi (TCP 5277), USB AOA 2.0 with fast charging, and Bluetooth A2DP Sink audio bridge to helmet intercoms (Cardo/Sena) and car audio.
-            - **Kiosk Direct Boot**: Bypasses lockscreen, setup wizard, and phone bloatware.
+            #### Scoped Strictly to Your Required Features:
+            - **Phone Screen Mirroring**: 60fps low-latency video projection.
+            - **Navigation via Phone GPS**: Live Google Maps / Waze turn-by-turn navigation streamed from your phone.
+            - **Dual-Band Wi-Fi (2.4 GHz & 5 GHz)**: Full 2.4 GHz (Channels 1–11) support for universal phone connection + 5 GHz high-speed streaming.
+            - **Bluetooth Audio Stack**: A2DP Sink bridge routing calls & audio to helmet intercoms (Sena/Cardo) or car speakers.
+            - **USB Connectivity & Charging**: Plug-and-play wired projection via USB AOA 2.0 with continuous power charging.
+            - **All Displays & Dual Orientation**: 
+              - **Bike Portrait (9:16)** on handlebar stem mounts.
+              - **Bike / Car Landscape (16:9)** on handlebar bars and dashboards.
+              - **Banking Gyro Lock**: Prevents accidental screen flipping when banking in motorcycle turns.
+            - **Zero Bloat / Pure Appliance**: Completely debloats telephony, cellular dialers, SMS, and setup wizards. Bypasses lockscreens for direct boot.
             
             #### How to Flash:
             ```bash
@@ -66,5 +70,5 @@ jobs:
         with:
           name: MotoCarOS-Universal-ARM64
           path: |
-            MotoCarOS-Universal-ARM64-v1.0-system.img.xz
-            MotoCarOS-Universal-ARM64-v1.0-Fastboot.zip
+            MotoCarOS-Universal-ARM64-*-system.img.xz
+            MotoCarOS-Universal-ARM64-*-Fastboot.zip

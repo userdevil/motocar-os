@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-MotoCar OS Cloud GSI Pipeline Builder
-Runs on Ubuntu Linux in GitHub Actions with root privileges:
-1. Dynamically finds and downloads the official TrebleDroid / AOSP ARM64 A/B GSI base.
-2. Extracts the filesystem cleanly using read-only loop mount or 7z.
-3. Injects compiled native binaries, JNI, MotoCarShell.apk, permissions, and automotive build.prop.
-4. Repacks using mke2fs and sparses using img2simg to produce the final universal MotoCar OS system.img.
+MotoCar OS Universal Head Unit Cloud Builder (Bike & Car)
+Builds the universal flashable system.img for all Android phones:
+- Strictly scoped to: Phone mirror, GPS navigation stream from phone,
+  2.4 GHz & 5 GHz Wi-Fi, Bluetooth A2DP audio bridge to helmet/car, USB AOA 2.0.
+- Completely debloats telephony, dialer, SMS, and setup wizard.
+- Supports all displays: Portrait (9:16) for bike stem, Landscape (16:9) for bike/car dash.
 """
 
 import os
@@ -65,7 +65,8 @@ def main():
     os.makedirs(build_dir, exist_ok=True)
 
     print("=================================================================", flush=True)
-    print("  MotoCar OS Universal ARM64 Cloud GSI Builder", flush=True)
+    print("  MotoCar OS Universal Head Unit Firmware Builder (Bike & Car)   ", flush=True)
+    print("  Features: Phone Mirror, GPS Navigation, 2.4/5GHz Wi-Fi, BT, USB", flush=True)
     print("=================================================================", flush=True)
 
     # 1. Download official TrebleDroid ARM64 A/B base GSI
@@ -100,7 +101,7 @@ def main():
         print("[!] Loop mount failed; extracting with 7z...", flush=True)
         run_cmd(f"7z x '{raw_img_path}' -o'{system_tree_dir}/'")
 
-    # Delete the large base raw image to free disk space
+    # Delete large base raw image
     os.remove(raw_img_path)
 
     # 3. Locate system directory inside tree
@@ -110,7 +111,30 @@ def main():
 
     print(f"[*] Target system directory: {target_root}", flush=True)
 
-    # 4. Inject MotoCar OS Components
+    # 4. Debloat dormant phone packages (cellular, dialer, SMS, setup wizard)
+    print("[*] Debloating system image: removing unused phone bloatware...", flush=True)
+    debloat_targets = [
+        "app/CellBroadcastReceiver",
+        "app/SimToolkit",
+        "app/Messaging",
+        "app/Dialer",
+        "app/EmergencyInfo",
+        "priv-app/TeleService",
+        "priv-app/CallLogBackup",
+        "priv-app/CarrierDefaultApp",
+        "priv-app/SetupWizard",
+        "priv-app/Provision",
+    ]
+    for rel in debloat_targets:
+        full_target = os.path.join(target_root, rel)
+        if os.path.exists(full_target):
+            print(f"    [-] Debloating: {rel}", flush=True)
+            if os.path.isdir(full_target):
+                shutil.rmtree(full_target, ignore_errors=True)
+            else:
+                os.remove(full_target)
+
+    # 5. Inject MotoCar OS Dedicated Head Unit Components
     # MotoCarShell.apk
     privapp_dir = os.path.join(target_root, "priv-app", "MotoCarShell")
     os.makedirs(privapp_dir, exist_ok=True)
@@ -156,49 +180,64 @@ def main():
     shutil.copy2(src_rc, dst_rc)
     os.chmod(dst_rc, 0o644)
 
-    # Automotive build.prop
+    # Dedicated Head Unit System Properties (2.4GHz + 5GHz Wi-Fi, BT Sink, USB AOA)
     build_prop_path = os.path.join(target_root, "build.prop")
-    automotive_props = (
-        "\n# --- MotoCar OS Automotive System Properties ---\n"
-        "ro.build.display.id=MotoCar-OS-v1.0-Universal-Treble-ARM64\n"
+    headunit_props = (
+        "\n# --- MotoCar Dedicated Head Unit OS Properties ---\n"
+        "ro.build.display.id=MotoCar-OS-v1.1-Universal-HeadUnit\n"
         "ro.product.brand=MotoCar\n"
-        "ro.product.model=Universal Automotive HeadUnit\n"
+        "ro.product.model=Universal Motorcycle & Car Head Unit\n"
         "ro.setupwizard.mode=DISABLED\n"
         "config.disable_lockscreen=true\n"
+        "\n"
+        "# Dual Orientation Display (Portrait 9:16 & Landscape 16:9) + Gyro Banking Lock\n"
         "persist.sys.phh.autorotate=true\n"
         "persist.sys.motocar.bike_mode=true\n"
+        "persist.sys.motocar.orientation_lock=0\n"
+        "\n"
+        "# Wi-Fi: Dual-Band 2.4 GHz (Channels 1-11) & 5 GHz (Channels 36-165)\n"
+        "wifi.interface=wlan0\n"
+        "wifi.direct.interface=p2p0\n"
+        "ro.wifi.channels=1-14\n"
+        "persist.sys.wifi.band=0\n"
+        "persist.sys.wifi.ap.band=2.4G\n"
+        "\n"
+        "# Bluetooth: Audio Sink (Receive phone audio) & Bridge to Helmet Intercom/Car Speakers\n"
         "bluetooth.profile.a2dp.sink.enabled=true\n"
         "bluetooth.profile.hfp.hf.enabled=true\n"
         "persist.bluetooth.enablesink=true\n"
-        "ro.audio.silent=0\n"
+        "\n"
+        "# USB Connectivity & Continuous Charging (USB AOA 2.0)\n"
         "sys.usb.config=accessory,adb\n"
         "persist.sys.usb.config=accessory,adb\n"
-        "# ------------------------------------------------\n"
+        "ro.sys.usb.bicr=0\n"
+        "ro.audio.silent=0\n"
+        "# --------------------------------------------------\n"
     )
-    print("[*] Appending automotive configuration to build.prop...", flush=True)
+    print("[*] Appending dedicated Head Unit configuration to build.prop...", flush=True)
     with open(build_prop_path, "a", encoding="utf-8") as f:
-        f.write(automotive_props)
+        f.write(headunit_props)
 
-    print("[+] All MotoCar OS components successfully injected into system tree!", flush=True)
+    print("[+] System tree configured as dedicated Head Unit!", flush=True)
 
-    # 5. Pack system tree into new ext4 image using mke2fs
+    # 6. Pack clean system tree into ext4 image using mke2fs
     new_raw_img = os.path.join(build_dir, "motocar_system.raw.img")
     print(f"[*] Repacking system tree into ext4 image: {new_raw_img} (2600 MB)...", flush=True)
     run_cmd(f"mke2fs -t ext4 -b 4096 -d '{system_tree_dir}' -L system '{new_raw_img}' 2600M")
 
-    # 6. Convert raw ext4 to Android sparse image format
+    # 7. Convert raw ext4 to Android sparse image format
     print(f"[*] Converting to Android sparse format: {final_sparse_img}...", flush=True)
     run_cmd(f"img2simg '{new_raw_img}' '{final_sparse_img}'")
     if os.path.exists(new_raw_img):
         os.remove(new_raw_img)
 
-    # 7. Compress sparse image to XZ for release
-    xz_release = os.path.join(workspace, "MotoCarOS-Universal-ARM64-v1.0-system.img.xz")
+    # 8. Compress sparse image to XZ for release
+    xz_release = os.path.join(workspace, "MotoCarOS-Universal-ARM64-v1.1-system.img.xz")
     print(f"[*] Compressing final system image to {xz_release}...", flush=True)
     run_cmd(f"xz -z -T0 -9 -c '{final_sparse_img}' > '{xz_release}'")
 
-    # 8. Create flashable Fastboot ZIP
-    zip_release = os.path.join(workspace, "MotoCarOS-Universal-ARM64-v1.0-Fastboot.zip")
+    # 9. Create flashable Fastboot ZIP
+    zip_release = os.path.join(workspace, "MotoCarOS-Universal-ARM64-v1.1-Fastboot.zip")
     flash_bat = os.path.join(workspace, "flash_device.bat")
     flash_sh = os.path.join(workspace, "flash_device.sh")
     vbmeta = os.path.join(workspace, "prebuilts", "boot", "vbmeta.img")
@@ -208,7 +247,7 @@ def main():
     run_cmd(f"zip -j -9 '{zip_release}' '{final_sparse_img}' '{vbmeta}' '{boot}' '{flash_bat}' '{flash_sh}'")
 
     print("=================================================================", flush=True)
-    print("  MotoCar OS Build Complete!", flush=True)
+    print("  MotoCar OS v1.1 Build Complete!", flush=True)
     print(f"  Release Assets Created:")
     print(f"  - {xz_release} ({os.path.getsize(xz_release):,} bytes)", flush=True)
     print(f"  - {zip_release} ({os.path.getsize(zip_release):,} bytes)", flush=True)
