@@ -1,6 +1,6 @@
 //
 // Copyright (C) 2026 The Android Open Source Project
-// MotoCar OS Head Unit Shell APK
+// MotoCar OS Head Unit Shell (Native Android Automotive OS System App)
 //
 
 android_app {
@@ -15,6 +15,10 @@ android_app {
     ],
 
     resource_dirs: ["res"],
+
+    libs: [
+        "android.car",
+    ],
 
     static_libs: [
         "androidx.appcompat_appcompat",

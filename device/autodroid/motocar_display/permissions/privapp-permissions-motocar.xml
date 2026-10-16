@@ -1,14 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The Android Open Source Project
+     Privileged Permissions for MotoCar Automotive Shell and Head Unit Services
+-->
 <permissions>
     <privapp-permissions package="com.autodroid.motocar">
+        <!-- System Level Injection & Windows -->
         <permission name="android.permission.INJECT_EVENTS" />
-        <permission name="android.permission.ACCESS_FINE_LOCATION" />
-        <permission name="android.permission.ACCESS_COARSE_LOCATION" />
-        <permission name="android.permission.BLUETOOTH_PRIVILEGED" />
-        <permission name="android.permission.MODIFY_AUDIO_ROUTING" />
         <permission name="android.permission.INTERNAL_SYSTEM_WINDOW" />
         <permission name="android.permission.SYSTEM_ALERT_WINDOW" />
         <permission name="android.permission.WAKE_LOCK" />
         <permission name="android.permission.SET_ORIENTATION" />
+
+        <!-- High-Precision Location for Navigation -->
+        <permission name="android.permission.ACCESS_FINE_LOCATION" />
+        <permission name="android.permission.ACCESS_COARSE_LOCATION" />
+
+        <!-- Privileged Bluetooth & Audio Routing (A2DP Sink & Intercom Relay) -->
+        <permission name="android.permission.BLUETOOTH_PRIVILEGED" />
+        <permission name="android.permission.MODIFY_AUDIO_ROUTING" />
+
+        <!-- Android Automotive (AAOS) Core Permissions -->
+        <permission name="android.car.permission.CAR_INFO" />
+        <permission name="android.car.permission.CAR_PROJECTION" />
+        <permission name="android.car.permission.CAR_NAVIGATION_MANAGER" />
+        <permission name="android.car.permission.CAR_CONTROL_AUDIO_VOLUME" />
+        <permission name="android.car.permission.CAR_DRIVING_STATE" />
+        <permission name="android.car.permission.CAR_POWER" />
     </privapp-permissions>
 </permissions>

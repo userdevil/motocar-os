@@ -1,4 +1,4 @@
-name: Build MotoCar OS Universal ARM64 ROM (All Phones)
+name: Build MotoCar OS (AAOS) Universal ARM64 ROM (All Phones)
 
 on:
   workflow_dispatch:
@@ -23,40 +23,42 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y android-sdk-libsparse-utils e2fsprogs e2tools p7zip-full zip unzip xz-utils curl python3
 
-      - name: Build MotoCar OS Universal GSI System Image
+      - name: Build MotoCar Android Automotive OS (AAOS) Universal Image
         run: |
           chmod +x tools/build_cloud_gsi.py
           sudo python3 tools/build_cloud_gsi.py
           sudo chown -R $USER:$USER .
 
-      - name: Upload MotoCar OS Universal Release
+      - name: Upload MotoCar AAOS Universal Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            MotoCarOS-Universal-ARM64-*-system.img.xz
-            MotoCarOS-Universal-ARM64-*-Fastboot.zip
+            MotoCarOS-*-system.img.xz
+            MotoCarOS-*-Fastboot.zip
           draft: false
           prerelease: false
-          name: "MotoCar OS Universal Head Unit Release"
+          name: "MotoCar OS (AAOS) Universal In-Vehicle Head Unit Release"
           body: |
-            ### MotoCar OS - Pure Dedicated In-Vehicle Head Unit OS (Bike & Car)
-            
-            This is the official, universal operating system image converting any ARM64 Android phone into a dedicated motorcycle/car headunit.
-            
-            #### Scoped Strictly to Your Required Features:
-            - **Phone Screen Mirroring**: 60fps low-latency video projection.
-            - **Navigation via Phone GPS**: Live Google Maps / Waze turn-by-turn navigation streamed from your phone.
-            - **Dual-Band Wi-Fi (2.4 GHz & 5 GHz)**: Full 2.4 GHz (Channels 1–11) support for universal phone connection + 5 GHz high-speed streaming.
-            - **Bluetooth Audio Stack**: A2DP Sink bridge routing calls & audio to helmet intercoms (Sena/Cardo) or car speakers.
-            - **USB Connectivity & Charging**: Plug-and-play wired projection via USB AOA 2.0 with continuous power charging.
-            - **All Displays & Dual Orientation**: 
+            ### MotoCar OS - Authentic Android Automotive OS (AAOS) for Universal Mobile Phones
+            **Architecture Reference**: [source.android.com/docs/automotive](https://source.android.com/docs/automotive) & `gsi_car_arm64`
+
+            This firmware image compiles the authentic Google Android Automotive OS architecture for universal Project Treble ARM64 mobile phones.
+
+            #### Core AAOS Features (Strictly Minimal & Debloated):
+            - **Authentic AAOS Profile**: Declares `android.hardware.type.automotive` via `car_core_hardware.xml` with `ro.build.characteristics=automotive`.
+            - **Phone Screen Mirroring**: High-performance 60fps hardware NDK MediaCodec decoder with `/dev/uinput` touch injection.
+            - **Navigation via Phone GPS**: Runs navigation apps with GPS stream relayed from the phone or onboard GNSS.
+            - **Dual-Band 2.4 GHz & 5 GHz Wi-Fi**: Full 2.4 GHz (Channels 1–11) support for outdoor bike range + 5 GHz high-speed streaming.
+            - **Bluetooth Audio Stack**: A2DP Sink bridge routing calls & music directly to helmet intercoms (Sena, Cardo) or car cabin speakers.
+            - **USB Connectivity & Charging**: Plug-and-play wired mirroring via USB AOA 2.0 with continuous power charging.
+            - **Universal Display & Dual Orientation**:
               - **Bike Portrait (9:16)** on handlebar stem mounts.
-              - **Bike / Car Landscape (16:9)** on handlebar bars and dashboards.
-              - **Banking Gyro Lock**: Prevents accidental screen flipping when banking in motorcycle turns.
-            - **Zero Bloat / Pure Appliance**: Completely debloats telephony, cellular dialers, SMS, and setup wizards. Bypasses lockscreens for direct boot.
-            
-            #### How to Flash:
+              - **Bike / Car Landscape (16:9)** on horizontal clamps and car dashboards.
+              - **Banking Gyro Lock**: Prevents screen flipping when leaning during motorcycle turns.
+            - **Zero Phone Bloat**: Completely removes phone dialers, SMS, carrier services, and setup wizards. Boots directly to the MotoCar Automotive Shell.
+
+            #### How to Flash (via Fastboot):
             ```bash
             fastboot reboot fastboot
             fastboot flash system system.img
@@ -68,7 +70,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: "!startsWith(github.ref, 'refs/tags/')"
         with:
-          name: MotoCarOS-Universal-ARM64
+          name: MotoCarOS-AAOS-Universal-ARM64
           path: |
-            MotoCarOS-Universal-ARM64-*-system.img.xz
-            MotoCarOS-Universal-ARM64-*-Fastboot.zip
+            MotoCarOS-*-system.img.xz
+            MotoCarOS-*-Fastboot.zip

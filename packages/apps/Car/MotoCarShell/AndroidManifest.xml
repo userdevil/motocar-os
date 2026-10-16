@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2026 The Android Open Source Project -->
+<!-- Copyright (C) 2026 The Android Open Source Project
+     Android Automotive OS (AAOS) Dedicated Head Unit Shell Manifest
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.autodroid.motocar">
 
+    <!-- Automotive Feature Flags -->
+    <uses-feature android:name="android.hardware.type.automotive" android:required="true" />
+    <uses-feature android:name="android.hardware.wifi" android:required="true" />
+    <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
+    <uses-feature android:name="android.hardware.usb.accessory" android:required="true" />
+
+    <!-- Core Connectivity & Hardware Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -10,10 +19,18 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_ROUTING" />
+
+    <!-- Automotive Framework Permissions -->
+    <uses-permission android:name="android.car.permission.CAR_INFO" />
+    <uses-permission android:name="android.car.permission.CAR_PROJECTION" />
+    <uses-permission android:name="android.car.permission.CAR_NAVIGATION_MANAGER" />
+    <uses-permission android:name="android.car.permission.CAR_CONTROL_AUDIO_VOLUME" />
 
     <application
         android:label="@string/app_name"
@@ -29,11 +46,13 @@
             android:screenOrientation="unspecified"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
 
-            <!-- Acts as the Primary Operating System Home Launcher -->
-            <intent-filter>
+            <!-- Acts as the Primary Android Automotive OS Launcher & Car Dock -->
+            <intent-filter priority="1000">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.CAR_DOCK" />
+                <category android:name="android.intent.category.CAR_LAUNCHER" />
             </intent-filter>
         </activity>
     </application>

@@ -2,7 +2,8 @@
 setlocal enabledelayedexpansion
 
 echo =====================================================================
-echo       MotoCar OS Universal Fastboot Flasher (All Phones)
+echo  MotoCar OS: Android Automotive OS (AAOS) Fastboot Flasher
+echo  Architecture: gsi_car_arm64 (Universal for All Android Phones)
 echo =====================================================================
 
 set FASTBOOT="%LOCALAPPDATA%\Android\Sdk\platform-tools\fastboot.exe"
@@ -11,6 +12,16 @@ if not exist %FASTBOOT% (
 )
 
 set OUT=out\target\product\motocar_display
+
+set SYSTEM_IMG=system.img
+if not exist "%SYSTEM_IMG%" (
+    set SYSTEM_IMG=%OUT%\system.img
+)
+
+set VBMETA_IMG=vbmeta.img
+if not exist "%VBMETA_IMG%" (
+    set VBMETA_IMG=%OUT%\vbmeta.img
+)
 
 echo [*] Checking for connected fastboot devices...
 %FASTBOOT% devices
@@ -44,19 +55,27 @@ if errorlevel 1 (
 
 echo.
 echo [+] Step 1: Disabling Android Verified Boot (AVB) verity checks...
-%FASTBOOT% --disable-verity --disable-verification flash vbmeta "%OUT%\vbmeta.img" >nul 2>&1
-if errorlevel 1 (
-    echo [*] Standard vbmeta flash failed, attempting without extra flags...
-    %FASTBOOT% flash vbmeta "%OUT%\vbmeta.img"
+if exist "%VBMETA_IMG%" (
+    %FASTBOOT% --disable-verity --disable-verification flash vbmeta "%VBMETA_IMG%" >nul 2>&1
+    if errorlevel 1 (
+        %FASTBOOT% flash vbmeta "%VBMETA_IMG%"
+    )
+) else (
+    echo [*] vbmeta.img not found, skipping AVB flash...
 )
 
 echo.
-echo [+] Step 2: Flashing MotoCar OS Universal System Image (system.img)...
-%FASTBOOT% flash system "%OUT%\system.img"
+echo [+] Step 2: Flashing MotoCar AAOS Universal System Image...
+if not exist "%SYSTEM_IMG%" (
+    echo [!] ERROR: system.img not found! Ensure system.img is in the current directory.
+    pause
+    exit /b 1
+)
+%FASTBOOT% flash system "%SYSTEM_IMG%"
 if errorlevel 1 (
-    echo [!] If flashing failed due to partition size in dynamic partitions, attempting slot flash...
-    %FASTBOOT% flash system_a "%OUT%\system.img" >nul 2>&1
-    %FASTBOOT% flash system_b "%OUT%\system.img" >nul 2>&1
+    echo [!] Standard flash failed, attempting slot-specific flashing...
+    %FASTBOOT% flash system_a "%SYSTEM_IMG%" >nul 2>&1
+    %FASTBOOT% flash system_b "%SYSTEM_IMG%" >nul 2>&1
 )
 
 echo.
@@ -68,12 +87,12 @@ if errorlevel 1 (
 )
 
 echo.
-echo [+] Step 4: Rebooting into MotoCar OS...
+echo [+] Step 4: Rebooting into Android Automotive OS...
 %FASTBOOT% reboot
 
 echo.
 echo =====================================================================
 echo  MotoCar OS Successfully Flashed!
-echo  Your phone is now rebooting into the dedicated Bike/Car Head Unit OS.
+echo  Your phone is now rebooting into Android Automotive OS (AAOS).
 echo =====================================================================
 pause

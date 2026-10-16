@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The Android Open Source Project
+     Android Automotive OS (AAOS) Core Hardware Feature Definitions for Universal Phones
+-->
+<permissions>
+    <!-- Core Automotive Device Identification -->
+    <feature name="android.hardware.type.automotive" />
+    <feature name="android.software.car.templates_host" />
+
+    <!-- Screen & Orientation Support (Bike Portrait 9:16 and Landscape 16:9) -->
+    <feature name="android.hardware.screen.portrait" />
+    <feature name="android.hardware.screen.landscape" />
+
+    <!-- Touch Digitizer -->
+    <feature name="android.hardware.touchscreen" />
+    <feature name="android.hardware.touchscreen.multitouch" />
+    <feature name="android.hardware.touchscreen.multitouch.distinct" />
+    <feature name="android.hardware.touchscreen.multitouch.jazzhand" />
+
+    <!-- Connectivity: Dual-Band Wi-Fi (2.4 GHz + 5 GHz), Bluetooth, USB AOA -->
+    <feature name="android.hardware.wifi" />
+    <feature name="android.hardware.wifi.direct" />
+    <feature name="android.hardware.bluetooth" />
+    <feature name="android.hardware.bluetooth_le" />
+    <feature name="android.hardware.usb.accessory" />
+    <feature name="android.hardware.usb.host" />
+
+    <!-- Navigation & Location -->
+    <feature name="android.hardware.location" />
+    <feature name="android.hardware.location.gps" />
+    <feature name="android.hardware.location.network" />
+
+    <!-- Audio & Sensors -->
+    <feature name="android.hardware.audio.output" />
+    <feature name="android.hardware.sensor.accelerometer" />
+    <feature name="android.hardware.sensor.gyroscope" />
+
+    <!-- Disabling Cellular Telephony: Pure Head Unit OS Receiver -->
+    <unavailable-feature name="android.hardware.telephony" />
+    <unavailable-feature name="android.hardware.telephony.gsm" />
+    <unavailable-feature name="android.hardware.telephony.cdma" />
+    <unavailable-feature name="android.hardware.telephony.calling" />
+    <unavailable-feature name="android.hardware.telephony.data" />
+    <unavailable-feature name="android.hardware.telephony.messaging" />
+</permissions>
