@@ -2,20 +2,21 @@
 """
 MotoCar OS Cloud GSI Pipeline Builder
 Runs on Ubuntu Linux in GitHub Actions:
-1. Downloads official TrebleDroid / AOSP ARM64 A/B GSI base.
-2. Unsparses system.img into raw ext4.
+1. Dynamically finds and downloads the official TrebleDroid / AOSP ARM64 A/B GSI base.
+2. Decompresses and resizes the ext4 filesystem.
 3. Injects compiled native binaries, JNI, MotoCarShell.apk, permissions, and automotive build.prop.
 4. Repacks and sparses the final universal MotoCar OS system.img.
 """
 
 import os
 import sys
+import json
 import subprocess
 import urllib.request
 import lzma
 import shutil
 
-BASE_GSI_URL = "https://github.com/TrebleDroid/treble_experimentations/releases/download/v2024.08.11/system-td-arm64-ab-vanilla.img.xz"
+FALLBACK_GSI_URL = "https://github.com/TrebleDroid/treble_experimentations/releases/download/ci-20250415/system-td-arm64-ab-vanilla.img.xz"
 
 def run_cmd(cmd, cwd=None):
     print(f"[CMD] {cmd}")
@@ -27,6 +28,39 @@ def run_cmd(cmd, cwd=None):
         sys.exit(res.returncode)
     return res.stdout
 
+def get_latest_gsi_url():
+    """Queries GitHub API for the latest release asset of TrebleDroid ARM64 A/B GSI."""
+    api_url = "https://api.github.com/repos/TrebleDroid/treble_experimentations/releases/latest"
+    req = urllib.request.Request(api_url, headers={"User-Agent": "MotoCarOS-Builder"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+            for asset in data.get("assets", []):
+                if asset["name"] == "system-td-arm64-ab-vanilla.img.xz":
+                    print(f"[*] Found dynamic GSI release asset: {asset['browser_download_url']}")
+                    return asset["browser_download_url"]
+    except Exception as e:
+        print(f"[!] Warning: Could not fetch release asset dynamically: {e}")
+    
+    print(f"[*] Using verified release URL: {FALLBACK_GSI_URL}")
+    return FALLBACK_GSI_URL
+
+def download_file(url, out_path):
+    print(f"[*] Downloading base GSI from:\n    {url}")
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)"})
+    with urllib.request.urlopen(req) as resp, open(out_path, "wb") as f_out:
+        total = int(resp.headers.get("Content-Length", 0))
+        downloaded = 0
+        while chunk := resp.read(1024 * 1024 * 8):
+            f_out.write(chunk)
+            downloaded += len(chunk)
+            if total > 0:
+                percent = (downloaded / total) * 100
+                print(f"\r    {downloaded / (1024*1024):.1f} MB / {total / (1024*1024):.1f} MB ({percent:.1f}%)", end="", flush=True)
+            else:
+                print(f"\r    {downloaded / (1024*1024):.1f} MB downloaded", end="", flush=True)
+    print("\n[+] Download complete!")
+
 def main():
     workspace = os.getenv("GITHUB_WORKSPACE", os.getcwd())
     build_dir = os.path.join(workspace, "build_out")
@@ -37,14 +71,14 @@ def main():
     print("=================================================================")
 
     # 1. Download official TrebleDroid ARM64 A/B base GSI
+    gsi_url = get_latest_gsi_url()
     xz_path = os.path.join(build_dir, "base_system.img.xz")
     raw_img_path = os.path.join(build_dir, "system.raw.img")
     final_sparse_img = os.path.join(build_dir, "system.img")
 
-    print(f"[*] Downloading official TrebleDroid ARM64-AB Base Image from:\n    {BASE_GSI_URL}")
-    urllib.request.urlretrieve(BASE_GSI_URL, xz_path)
+    download_file(gsi_url, xz_path)
 
-    print("[*] Decompressing XZ archive...")
+    print("[*] Decompressing XZ archive to raw ext4 image...")
     with lzma.open(xz_path, "rb") as f_in, open(raw_img_path, "wb") as f_out:
         shutil.copyfileobj(f_in, f_out)
     os.remove(xz_path)
