@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 MotoCar OS Cloud GSI Pipeline Builder
-Runs on Ubuntu Linux in GitHub Actions:
+Runs on Ubuntu Linux in GitHub Actions with root privileges:
 1. Dynamically finds and downloads the official TrebleDroid / AOSP ARM64 A/B GSI base.
 2. Extracts the filesystem cleanly using read-only loop mount or 7z.
 3. Injects compiled native binaries, JNI, MotoCarShell.apk, permissions, and automotive build.prop.
@@ -11,6 +11,7 @@ Runs on Ubuntu Linux in GitHub Actions:
 import os
 import sys
 import json
+import traceback
 import subprocess
 import urllib.request
 import lzma
@@ -84,19 +85,19 @@ def main():
     raw_size = os.path.getsize(raw_img_path)
     print(f"[+] Raw system.img decompressed: {raw_size:,} bytes", flush=True)
 
-    # 2. Extract filesystem cleanly using read-only loop mount (or 7z fallback)
+    # 2. Extract filesystem cleanly using read-only loop mount
     os.makedirs(system_tree_dir, exist_ok=True)
     mount_ro_dir = os.path.join(build_dir, "mnt_ro")
     os.makedirs(mount_ro_dir, exist_ok=True)
 
     print("[*] Extracting system filesystem...", flush=True)
-    mount_res = subprocess.run(f"sudo mount -o loop,ro '{raw_img_path}' '{mount_ro_dir}'", shell=True)
+    mount_res = subprocess.run(f"mount -o loop,ro '{raw_img_path}' '{mount_ro_dir}'", shell=True)
     if mount_res.returncode == 0:
         print("[+] Mounted raw image read-only successfully. Copying files to working tree...", flush=True)
-        run_cmd(f"sudo cp -a '{mount_ro_dir}'/* '{system_tree_dir}/'")
-        run_cmd(f"sudo umount '{mount_ro_dir}'")
+        run_cmd(f"cp -a '{mount_ro_dir}'/* '{system_tree_dir}/'")
+        run_cmd(f"umount '{mount_ro_dir}'")
     else:
-        print("[!] Loop mount failed; falling back to 7z extraction...", flush=True)
+        print("[!] Loop mount failed; extracting with 7z...", flush=True)
         run_cmd(f"7z x '{raw_img_path}' -o'{system_tree_dir}/'")
 
     # Delete the large base raw image to free disk space
@@ -183,12 +184,13 @@ def main():
     # 5. Pack system tree into new ext4 image using mke2fs
     new_raw_img = os.path.join(build_dir, "motocar_system.raw.img")
     print(f"[*] Repacking system tree into ext4 image: {new_raw_img} (2600 MB)...", flush=True)
-    run_cmd(f"sudo mke2fs -t ext4 -b 4096 -d '{system_tree_dir}' -L system '{new_raw_img}' 2600M")
+    run_cmd(f"mke2fs -t ext4 -b 4096 -d '{system_tree_dir}' -L system '{new_raw_img}' 2600M")
 
     # 6. Convert raw ext4 to Android sparse image format
     print(f"[*] Converting to Android sparse format: {final_sparse_img}...", flush=True)
     run_cmd(f"img2simg '{new_raw_img}' '{final_sparse_img}'")
-    run_cmd(f"sudo rm -f '{new_raw_img}'")
+    if os.path.exists(new_raw_img):
+        os.remove(new_raw_img)
 
     # 7. Compress sparse image to XZ for release
     xz_release = os.path.join(workspace, "MotoCarOS-Universal-ARM64-v1.0-system.img.xz")
@@ -213,4 +215,9 @@ def main():
     print("=================================================================", flush=True)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"\n[FATAL BUILD ERROR] {e}", flush=True)
+        traceback.print_exc()
+        sys.exit(1)

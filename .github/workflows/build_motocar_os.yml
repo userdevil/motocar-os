@@ -6,6 +6,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build-motocar-rom:
     runs-on: ubuntu-22.04
@@ -23,7 +26,8 @@ jobs:
       - name: Build MotoCar OS Universal GSI System Image
         run: |
           chmod +x tools/build_cloud_gsi.py
-          python3 tools/build_cloud_gsi.py
+          sudo python3 tools/build_cloud_gsi.py
+          sudo chown -R $USER:$USER .
 
       - name: Upload MotoCar OS Universal Release
         uses: softprops/action-gh-release@v2
