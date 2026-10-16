@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <!-- MotoCar OS Local Manifest for Universal Treble GSI Builds -->
+  <remote name="motocar" fetch="https://github.com/autodroid-os" />
+
+  <!-- Automotive HAL & Audio Policy Extensions -->
+  <project path="device/autodroid/motocar_display" name="device_autodroid_motocar_display" remote="motocar" revision="main" />
+  
+  <!-- Native AAP Projection Engine (AAPReceiverDaemon, JNI, MediaCodec NDK) -->
+  <project path="hardware/autodroid/projection" name="hardware_autodroid_projection" remote="motocar" revision="main" />
+
+  <!-- MotoCar Shell Dedicated Launcher (Dual Orientation, Lockscreen Bypass) -->
+  <project path="packages/apps/Car/MotoCarShell" name="packages_apps_Car_MotoCarShell" remote="motocar" revision="main" />
+</manifest>

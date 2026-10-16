@@ -1,0 +1,7 @@
+#
+# MotoCar SELinux File Contexts
+#
+
+/vendor/bin/motocar_projection_service    u:object_r:motocar_projection_exec:s0
+/dev/usb_accessory                        u:object_r:usb_accessory_device:s0
+/dev/uinput                               u:object_r:uinput_device:s0

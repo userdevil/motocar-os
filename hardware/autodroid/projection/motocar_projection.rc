@@ -1,0 +1,6 @@
+service motocar_projection /vendor/bin/hw/motocar_projection_service
+    class hal
+    user system
+    group system audio input inet net_raw net_admin
+    capabilities NET_ADMIN NET_BIND_SERVICE
+    seclabel u:r:motocar_projection:s0

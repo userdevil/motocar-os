@@ -1,0 +1,156 @@
+name: Build MotoCar OS Universal ARM64 ROM (All Phones)
+
+on:
+  workflow_dispatch:
+    inputs:
+      android_version:
+        description: 'Android Base Version (e.g., 14.0 or 13.0)'
+        required: true
+        default: '14.0'
+      build_variant:
+        description: 'Build Variant (userdebug or user)'
+        required: true
+        default: 'userdebug'
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-motocar-rom:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout MotoCar OS Repository
+        uses: actions/checkout@v4
+        with:
+          path: motocar_src
+
+      - name: Free Disk Space on Runner
+        run: |
+          echo "Maximizing build space on runner..."
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          df -h
+
+      - name: Set up Build Environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev \
+            libc6-dev-i386 libncurses5 x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev \
+            libxml2 libxml2-utils xsltproc unzip fontconfig libssl-dev bc ccache rsync \
+            python3 python-is-python3 libarchive-tools e2tools android-sdk-libsparse-utils
+
+      - name: Install Google Repo Tool
+        run: |
+          mkdir -p ~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+          chmod a+x ~/bin/repo
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Initialize Treble AOSP / LineageOS Tree
+        run: |
+          mkdir -p ~/motocar_build
+          cd ~/motocar_build
+          git config --global user.name "MotoCar OS Builder"
+          git config --global user.email "builder@autodroid.org"
+          
+          # Initialize Treble AOSP 14.0 manifest
+          repo init -u https://github.com/TrebleDroid/treble_manifest.git -b android-14.0 --depth=1
+          
+          # Link MotoCar OS local manifest
+          mkdir -p .repo/local_manifests
+          cp $GITHUB_WORKSPACE/motocar_src/manifests/motocar_manifest.xml .repo/local_manifests/
+
+      - name: Sync Source Repositories
+        run: |
+          cd ~/motocar_build
+          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+
+      - name: Overlay MotoCar OS System Components
+        run: |
+          echo "Overlaying MotoCar OS headunit components..."
+          cd ~/motocar_build
+          
+          # Copy Device Tree
+          mkdir -p device/autodroid/motocar_display
+          cp -r $GITHUB_WORKSPACE/motocar_src/device/autodroid/motocar_display/* device/autodroid/motocar_display/
+          
+          # Copy Native AAP Projection Daemon
+          mkdir -p hardware/autodroid/projection
+          cp -r $GITHUB_WORKSPACE/motocar_src/hardware/autodroid/projection/* hardware/autodroid/projection/
+          
+          # Copy MotoCar Shell Launcher APK
+          mkdir -p packages/apps/Car/MotoCarShell
+          cp -r $GITHUB_WORKSPACE/motocar_src/packages/apps/Car/MotoCarShell/* packages/apps/Car/MotoCarShell/
+
+      - name: Configure ccache
+        run: |
+          export USE_CCACHE=1
+          export CCACHE_EXEC=/usr/bin/ccache
+          ccache -M 50G
+
+      - name: Compile MotoCar OS Universal System Image (ARM64 Treble)
+        run: |
+          cd ~/motocar_build
+          source build/envsetup.sh
+          
+          # Lunch universal Treble ARM64 target (works across all Qualcomm, MediaTek, Exynos, Unisoc phones)
+          lunch treble_arm64_bvN-${{ github.event.inputs.build_variant || 'userdebug' }}
+          
+          # Build systemimage and projection binaries
+          make -j$(nproc --all) systemimage motocar_projection_service libmotocar_projection_jni MotoCarShell
+
+      - name: Compress and Package Flashable Images
+        run: |
+          cd ~/motocar_build/out/target/product/*
+          echo "Compressing Universal MotoCar OS system.img..."
+          xz -z -T0 -9 system.img -c > $GITHUB_WORKSPACE/MotoCarOS-Universal-ARM64-v1.0-system.img.xz
+          
+          # Create Flashable Recovery Package
+          zip -9 $GITHUB_WORKSPACE/MotoCarOS-Universal-ARM64-v1.0-Fastboot.zip system.img
+          
+          ls -lh $GITHUB_WORKSPACE/MotoCarOS*
+
+      - name: Upload MotoCar OS Universal Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            MotoCarOS-Universal-ARM64-v1.0-system.img.xz
+            MotoCarOS-Universal-ARM64-v1.0-Fastboot.zip
+          draft: false
+          prerelease: false
+          name: "MotoCar OS Universal ARM64 Release"
+          body: |
+            ### MotoCar OS v1.0 - Universal Automotive ROM for All Android Phones
+            
+            This is the official compiled operating system image for converting any ARM64 Android phone into a dedicated Motorcycle/Car Head Unit.
+            
+            #### Features:
+            - **Universal Compatibility**: Boots on all Project Treble ARM64 Android phones.
+            - **Motorcycle & Car Dual Orientation**: Landscape (16:9) and Portrait (9:16) with banking angle lock.
+            - **Phone Screen Mirroring & App Streaming**: Low latency H.264 video decoding.
+            - **High-gain GPS Navigation Relay**: Streaming Google Maps / Waze directly from the driver's phone.
+            - **Connectivity**: 5GHz Wi-Fi (TCP 5277), USB AOA 2.0 with fast charging, and Bluetooth A2DP Sink audio bridge to helmet intercoms (Cardo/Sena) and car audio.
+            - **Kiosk Direct Boot**: Bypasses lockscreen, setup wizard, and phone bloatware.
+            
+            #### How to Flash:
+            ```bash
+            fastboot reboot fastboot
+            fastboot flash system system.img
+            fastboot -w
+            fastboot reboot
+            ```
+
+      - name: Upload Artifacts (Manual Run)
+        uses: actions/upload-artifact@v4
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        with:
+          name: MotoCarOS-Universal-ARM64
+          path: |
+            MotoCarOS-Universal-ARM64-v1.0-system.img.xz
+            MotoCarOS-Universal-ARM64-v1.0-Fastboot.zip

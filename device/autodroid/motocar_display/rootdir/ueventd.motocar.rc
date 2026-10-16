@@ -1,0 +1,22 @@
+#
+# Copyright (C) 2026 The Android Open Source Project
+# ueventd device permissions for MotoCar Display
+#
+
+# USB Accessory (AOA 2.0)
+/dev/usb_accessory        0660   system     system
+
+# Input Subsystem (uinput)
+/dev/uinput               0660   system     input
+
+# Graphics & SurfaceFlinger
+/dev/kgsl-3d0             0666   system     graphics
+/dev/ion                  0664   system     system
+/dev/dma_heap/*           0664   system     system
+
+# Audio nodes
+/dev/snd/*                0660   system     audio
+
+# Camera nodes (for rear backup camera)
+/dev/video*               0660   system     camera
+/dev/media*               0660   system     camera

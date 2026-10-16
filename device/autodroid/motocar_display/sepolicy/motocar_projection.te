@@ -1,0 +1,34 @@
+#
+# MotoCar Projection Daemon SELinux Policy
+#
+
+type motocar_projection, domain;
+type motocar_projection_exec, exec_type, vendor_file_type, file_type;
+
+init_daemon_domain(motocar_projection)
+
+# Allow binder IPC communication
+binder_use(motocar_projection)
+binder_call(motocar_projection, system_server)
+binder_call(motocar_projection, surfaceflinger)
+
+# Access to USB Accessory device (/dev/usb_accessory)
+allow motocar_projection usb_accessory_device:chr_file rw_file_perms;
+
+# Access to uinput for returning touch events to phone
+allow motocar_projection uinput_device:chr_file rw_file_perms;
+allow motocar_projection uhid_device:chr_file rw_file_perms;
+
+# Network permissions for 5GHz Wi-Fi streaming (TCP 5277)
+allow motocar_projection self:tcp_socket create_stream_socket_perms;
+allow motocar_projection self:udp_socket create_socket_perms;
+allow motocar_projection port:tcp_socket name_bind;
+allow motocar_projection node:tcp_socket node_bind;
+
+# Hardware acceleration & GPU access for H.264 decoding
+allow motocar_projection gpu_device:chr_file rw_file_perms;
+allow motocar_projection ion_device:chr_file rw_file_perms;
+allow motocar_projection hal_graphics_allocator_default:fd use;
+
+# Allow reading system properties
+get_prop(motocar_projection, default_prop)

@@ -1,0 +1,71 @@
+//
+// Copyright (C) 2026 The Android Open Source Project
+// MotoCar Native Projection Service and JNI Library Blueprint
+//
+
+cc_binary {
+    name: "motocar_projection_service",
+    vendor: true,
+    relative_install_path: "hw",
+    init_rc: ["motocar_projection.rc"],
+
+    srcs: [
+        "AAPReceiverDaemon.cpp",
+        "main.cpp",
+    ],
+
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wextra",
+        "-DLOG_TAG=\"MotoCarProjection\"",
+        "-O3",
+    ],
+
+    shared_libs: [
+        "liblog",
+        "libutils",
+        "libcutils",
+        "libbinder",
+        "libmediandk",
+        "libandroid",
+        "libgui",
+    ],
+
+    header_libs: [
+        "libmediandk_headers",
+    ],
+}
+
+cc_library_shared {
+    name: "libmotocar_projection_jni",
+    vendor: true,
+
+    srcs: [
+        "AAPReceiverDaemon.cpp",
+        "motocar_jni.cpp",
+    ],
+
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wextra",
+        "-DLOG_TAG=\"MotoCarProjectionJNI\"",
+        "-O3",
+    ],
+
+    shared_libs: [
+        "liblog",
+        "libutils",
+        "libcutils",
+        "libbinder",
+        "libmediandk",
+        "libandroid",
+        "libgui",
+    ],
+
+    header_libs: [
+        "libmediandk_headers",
+        "jni_headers",
+    ],
+}

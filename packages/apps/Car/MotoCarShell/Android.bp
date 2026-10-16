@@ -1,0 +1,28 @@
+//
+// Copyright (C) 2026 The Android Open Source Project
+// MotoCar OS Head Unit Shell APK
+//
+
+android_app {
+    name: "MotoCarShell",
+    platform_apis: true,
+    privileged: true,
+    certificate: "platform",
+
+    srcs: [
+        "src/**/*.kt",
+        "src/**/*.java",
+    ],
+
+    resource_dirs: ["res"],
+
+    static_libs: [
+        "androidx.appcompat_appcompat",
+        "androidx.core_core-ktx",
+        "com.google.android.material_material",
+    ],
+
+    optimize: {
+        enabled: false,
+    },
+}

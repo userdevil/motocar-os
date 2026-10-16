@@ -1,0 +1,17 @@
+# Build outputs and intermediate binaries
+out/
+dist/
+build/
+*.pyc
+__pycache__/
+
+# Dependencies
+node_modules/
+
+# OS / Editor generated
+.DS_Store
+Thumbs.db
+*.swp
+*.log
+.vscode/
+.idea/

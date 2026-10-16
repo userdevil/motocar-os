@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MotoCar OS: Portrait Layout (Optimized for Bike Handlebar Stem Mount) -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- 1. Hardware Video Surface (Tall 9:16 aspect ratio for vertical turn projection) -->
+    <SurfaceView
+        android:id="@+id/projection_surface"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
+
+    <!-- 2. Waiting Overlay (Displayed when no phone connected) -->
+    <LinearLayout
+        android:id="@+id/waiting_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="#E6050811"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MotoCar OS"
+            android:textColor="#3B82F6"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bike Handlebar Display • Portrait Mount"
+            android:textColor="#94A3B8"
+            android:textSize="13sp"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/connection_status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/connecting_phone"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:layout_marginTop="28dp"
+            android:background="#1E293B"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="10dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Plug in USB cable or connect via 5GHz Wi-Fi / Bluetooth"
+            android:textColor="#64748B"
+            android:textSize="11sp"
+            android:layout_marginTop="16dp" />
+    </LinearLayout>
+
+    <!-- 3. Top Status Bar Overlay (Glove-Friendly) -->
+    <LinearLayout
+        android:id="@+id/status_bar_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#B3000000"
+        android:paddingHorizontal="16dp">
+
+        <Button
+            android:id="@+id/btn_orientation_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:text="BIKE: PORTRAIT (TAP TO ROTATE)"
+            android:textColor="#38BDF8"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:background="#1E293B"
+            android:paddingHorizontal="10dp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/txt_status_bt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Helmet: ON"
+            android:textColor="#4ADE80"
+            android:textSize="11sp"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/txt_status_wifi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5GHz"
+            android:textColor="#60A5FA"
+            android:textSize="11sp"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/txt_phone_battery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="88%"
+            android:textColor="#FBBF24"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</FrameLayout>

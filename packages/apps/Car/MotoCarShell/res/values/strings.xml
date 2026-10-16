@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MotoCar Head Unit</string>
+    <string name="connecting_phone">Waiting for Phone Connection (USB / 5GHz Wi-Fi)...</string>
+    <string name="status_connected">Connected • Low-Latency 60FPS Projection</string>
+    <string name="bike_mode">Bike Mode (Handlebar Mount)</string>
+    <string name="car_mode">Car Mode (In-Dash Widescreen)</string>
+</resources>

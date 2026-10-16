@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<permissions>
+    <privapp-permissions package="com.autodroid.motocar">
+        <permission name="android.permission.INJECT_EVENTS" />
+        <permission name="android.permission.ACCESS_FINE_LOCATION" />
+        <permission name="android.permission.ACCESS_COARSE_LOCATION" />
+        <permission name="android.permission.BLUETOOTH_PRIVILEGED" />
+        <permission name="android.permission.MODIFY_AUDIO_ROUTING" />
+        <permission name="android.permission.INTERNAL_SYSTEM_WINDOW" />
+        <permission name="android.permission.SYSTEM_ALERT_WINDOW" />
+        <permission name="android.permission.WAKE_LOCK" />
+        <permission name="android.permission.SET_ORIENTATION" />
+    </privapp-permissions>
+</permissions>
