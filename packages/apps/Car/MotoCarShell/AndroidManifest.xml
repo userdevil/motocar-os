@@ -5,6 +5,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.autodroid.motocar">
 
+    <!-- Target SDK Definitions (Universal compatibility: Android 7.0 to Android 15+) -->
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
+
     <!-- Automotive Feature Flags -->
     <uses-feature android:name="android.hardware.type.automotive" android:required="true" />
     <uses-feature android:name="android.hardware.wifi" android:required="true" />

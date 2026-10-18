@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 The Android Open Source Project
- * MotoCar OS: Main Head Unit Activity (Bike Landscape & Portrait Support)
+ * MotoCar OS Automotive Shell & Dedicated Head Unit Activity (Bike & Car)
+ * Reference: https://source.android.com/docs/automotive
  */
 
 package com.autodroid.motocar;
@@ -31,12 +32,14 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     }
 
     private OrientationLock currentOrientationLock = OrientationLock.AUTO_SENSOR;
+    private static boolean isNativeLoaded = false;
 
     static {
         try {
             System.loadLibrary("motocar_projection_jni");
-        } catch (UnsatisfiedLinkError e) {
-            // Standalone or mock fallback
+            isNativeLoaded = true;
+        } catch (Throwable e) {
+            isNativeLoaded = false;
         }
     }
 
@@ -115,11 +118,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         }
 
-        int width = isLandscape ? 1920 : 1080;
-        int height = isLandscape ? 1080 : 1920;
-        try {
-            nativeUpdateDimensions(width, height, isLandscape);
-        } catch (Exception ignored) {}
+        if (isNativeLoaded) {
+            int width = isLandscape ? 1920 : 1080;
+            int height = isLandscape ? 1080 : 1920;
+            try {
+                nativeUpdateDimensions(width, height, isLandscape);
+            } catch (Throwable ignored) {}
+        }
     }
 
     private void enableImmersiveMode() {
@@ -135,48 +140,56 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        try {
-            nativeSetSurface(holder.getSurface());
-            boolean isLandscape = (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE);
-            int width = isLandscape ? 1920 : 1080;
-            int height = isLandscape ? 1080 : 1920;
-            nativeUpdateDimensions(width, height, isLandscape);
-        } catch (Exception ignored) {}
+        if (isNativeLoaded) {
+            try {
+                nativeSetSurface(holder.getSurface());
+                boolean isLandscape = (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE);
+                int width = isLandscape ? 1920 : 1080;
+                int height = isLandscape ? 1080 : 1920;
+                nativeUpdateDimensions(width, height, isLandscape);
+            } catch (Throwable ignored) {}
+        }
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        boolean isLandscape = (width >= height);
-        try {
-            nativeUpdateDimensions(width, height, isLandscape);
-        } catch (Exception ignored) {}
+        if (isNativeLoaded) {
+            boolean isLandscape = (width >= height);
+            try {
+                nativeUpdateDimensions(width, height, isLandscape);
+            } catch (Throwable ignored) {}
+        }
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        try {
-            nativeSetSurface(null);
-        } catch (Exception ignored) {}
+        if (isNativeLoaded) {
+            try {
+                nativeSetSurface(null);
+            } catch (Throwable ignored) {}
+        }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        int action = -1;
-        switch (event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
-                action = 0;
-                break;
-            case MotionEvent.ACTION_UP:
-                action = 1;
-                break;
-            case MotionEvent.ACTION_MOVE:
-                action = 2;
-                break;
-        }
-        if (action >= 0) {
-            try {
-                nativeInjectTouch((int) event.getX(), (int) event.getY(), action);
-            } catch (Exception ignored) {}
+        if (isNativeLoaded) {
+            int action = -1;
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    action = 0;
+                    break;
+                case MotionEvent.ACTION_UP:
+                    action = 1;
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    action = 2;
+                    break;
+            }
+            if (action >= 0) {
+                try {
+                    nativeInjectTouch((int) event.getX(), (int) event.getY(), action);
+                } catch (Throwable ignored) {}
+            }
         }
         return true;
     }
